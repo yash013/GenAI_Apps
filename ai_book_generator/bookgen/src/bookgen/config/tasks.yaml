@@ -1,0 +1,34 @@
+outline_task:
+  description: >
+    Develop an outline for a science fiction storybook about Heros of Multiverse, including chapter titles and characters for 5 chapters.
+  expected_output: >
+    A structured outline document containing 5 chapter titles, with detailed character descriptions and the main plot points for each chapter.
+
+write_task:
+  description: >
+    Using the outline provided,Give the book a title, write the full story content for all chapters, ensuring a cohesive and engaging narrative for children. Each Chapter 100 words. Include Title of the story at the top.
+
+    NOTE THAT A BOOK SHOULD HAVE A MAIN TITLE AT THE TOP. PLEASE ADD THAT.
+  expected_output: >
+    A complete manuscript of the science fiction storybook about Heros of Multiverse with 5 chapters. Each chapter should contain approximately 100 words, following the provided outline and integrating the characters and plot points into a cohesive narrative.
+
+image_task:
+  description: >
+    Generate 5 images that captures the essence of the science fiction storybook about Heros of Multiverse, aligning with the themes, characters, and narrative outlined for the chapters. Do it one by one.'
+  expected_output: >
+    A digital image file that visually represents the overarching theme of the science fiction storybook about Heros of Multiverse, incorporating elements from the characters and plot as described in the outline. The image should be suitable for inclusion in the storybook as an illustration.
+
+format_task:
+  description: >
+    Format the written story content in markdown, including images at the beginning of each chapter. Ensure that the formatting is consistent and enhances the readability of the storybook.
+
+    NOTE THAT WHILE ADDING PATH OF THE IMAGE IN MARKDOWN PLEASE REPLACE "\" WITH "/". FOR EXAMPLE IF THE PATH IS "D:\aibookgen\bookgen\src\bookgen\chapter_1_shattered_realities_.png" THEN CHANGE IT TO "D:/aibookgen/bookgen/src/bookgen/chapter_1_shattered_realities_.png", HERE YOU CAN SEE "\" IS REPLACED WITH "/".
+
+  expected_output: >
+    A markdown file containing the written content of the science fiction storybook about Heros of Multiverse, with images appropriately placed at the beginning of each chapter. The formatting should be consistent and visually appealing, enhancing the overall presentation of the storybook. also replace '\' with '/' in image path in markdown. 
+
+pdf_task:
+  description: >
+    Convert the formatted markdown file into a PDF document, ensuring the preservation of formatting, structure, and embedded images using the mdpdf library.
+  expected_output: >
+    A PDF file generated from the Markdown input, accurately reflecting the content with proper formatting. The PDF should be ready for sharing or printing.

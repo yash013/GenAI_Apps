@@ -1,0 +1,68 @@
+    INFO: 2024-08-06 07:58:27,303:               log.py:   20: Logging to D:\aibookgen\bookgen\src\bookgen\mdpdf.log
+   DEBUG: 2024-08-06 07:58:27,303:               cli.py:  103: story.md
+    INFO: 2024-08-06 07:58:27,303:         converter.py:   14: story.md
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  470: printSegment: The Heroes of Multiverse
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  470: printSegment: Chapter 1: 
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  470: printSegment: The Awakening of Echo-1
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,319:      pdf_renderer.py:  235: D:\aibookgen\bookgen\src\bookgen\inthedepthsofspace.png, 1024, 1024
+   DEBUG: 2024-08-06 07:58:27,392:      pdf_renderer.py:  470: printSegment: In the depths of space, Lyra Erso, a skilled interdimensional explorer, stumbled upon an ancient artifact that
+   DEBUG: 2024-08-06 07:58:27,423:      pdf_renderer.py:  470: printSegment: hummed with the energy of the Multiverse. Meanwhile, on the planet Nexar, Arin Vex, a brilliant scientist, created a
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: device that could harness the energy, but it attracted unwanted attention from rogue agents. Kael Jensen, a
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: charismatic smuggler, was hired to transport the device, but his ship was ambushed, and the trio found themselves
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: escaping together. As they fled, Lyra
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: s connection to the Multiverse awakened, and she began to realize her destiny
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: as a hero.
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: Chapter 2: 
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: The Council of Guardians
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,439:      pdf_renderer.py:  235: D:\aibookgen\bookgen\src\bookgen\thetriowasbroughtbefore.png, 1024, 1024
+   DEBUG: 2024-08-06 07:58:27,533:      pdf_renderer.py:  470: printSegment: The trio was brought before the Council of Guardians, a group of powerful beings who protected the Multiverse.
+   DEBUG: 2024-08-06 07:58:27,564:      pdf_renderer.py:  470: printSegment: Zara Nightshade, a mysterious Guardian, revealed that the artifact Lyra discovered was a key to unlocking a
+   DEBUG: 2024-08-06 07:58:27,595:      pdf_renderer.py:  470: printSegment: powerful technology that could destroy entire universes. The Council tasked the trio with retrieving the technology
+   DEBUG: 2024-08-06 07:58:27,595:      pdf_renderer.py:  470: printSegment: before it fell into the wrong hands. Lyra, Arin, and Kael were thrust into a world of high stakes, where their actions
+   DEBUG: 2024-08-06 07:58:27,595:      pdf_renderer.py:  470: printSegment: could have far-reaching consequences. As they accepted their mission, they began to realize that their lives were
+   DEBUG: 2024-08-06 07:58:27,595:      pdf_renderer.py:  470: printSegment: now inextricably linked.
+   DEBUG: 2024-08-06 07:58:27,611:      pdf_renderer.py:  470: printSegment: Chapter 3: 
+   DEBUG: 2024-08-06 07:58:27,611:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,611:      pdf_renderer.py:  470: printSegment: The Shadow Syndicate
+   DEBUG: 2024-08-06 07:58:27,611:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,611:      pdf_renderer.py:  235: D:\aibookgen\bookgen\src\bookgen\thetrioinfiltratedashadow.png, 1024, 1024
+   DEBUG: 2024-08-06 07:58:27,642:      pdf_renderer.py:  470: printSegment: The trio infiltrated a Shadow Syndicate base to gather intel on the technology
+   DEBUG: 2024-08-06 07:58:27,642:      pdf_renderer.py:  470: printSegment: '
+   DEBUG: 2024-08-06 07:58:27,685:      pdf_renderer.py:  470: printSegment: s location. Vesper, a cunning agent,
+   DEBUG: 2024-08-06 07:58:27,717:      pdf_renderer.py:  470: printSegment: revealed that the Syndicate planned to use the technology to conquer multiple universes. As they fought their way
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: out of the base, Lyra discovered a shocking secret about her past: she was the daughter of a renowned scientist who
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: had been thought dead. The revelation raised more questions than answers, but Lyra was determined to uncover the
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: truth. The trio escaped with their lives, but the Syndicate would stop at nothing to claim the technology.
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: Chapter 4: 
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: The Lost City of Elyria
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,750:      pdf_renderer.py:  235: D:\aibookgen\bookgen\src\bookgen\thetriotraveledtothe.png, 1024, 1024
+   DEBUG: 2024-08-06 07:58:27,843:      pdf_renderer.py:  470: printSegment: The trio traveled to the Lost City of Elyria, where the technology was hidden. Eira Shadowglow, a mysterious
+   DEBUG: 2024-08-06 07:58:27,890:      pdf_renderer.py:  470: printSegment: Elyrian warrior, revealed that the city was trapped in a time loop, and the trio must navigate its ancient ruins to reach
+   DEBUG: 2024-08-06 07:58:27,922:      pdf_renderer.py:  470: printSegment: the technology. As they journeyed deeper into the city, they discovered that the technology was guarded by a
+   DEBUG: 2024-08-06 07:58:27,922:      pdf_renderer.py:  470: printSegment: powerful entity that would only allow those with pure intentions to pass. Lyra, Arin, and Kael were forced to
+   DEBUG: 2024-08-06 07:58:27,922:      pdf_renderer.py:  470: printSegment: confront their own motivations and the true cost of their mission. Would they be able to overcome their differences
+   DEBUG: 2024-08-06 07:58:27,922:      pdf_renderer.py:  470: printSegment: and work together to succeed?
+   DEBUG: 2024-08-06 07:58:27,937:      pdf_renderer.py:  470: printSegment: Chapter 5: 
+   DEBUG: 2024-08-06 07:58:27,937:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,937:      pdf_renderer.py:  470: printSegment: The Multiverse Uprising
+   DEBUG: 2024-08-06 07:58:27,937:      pdf_renderer.py:  470: printSegment: "
+   DEBUG: 2024-08-06 07:58:27,937:      pdf_renderer.py:  235: D:\aibookgen\bookgen\src\bookgen\thetrioreturnedtothe.png, 1024, 1024
+   DEBUG: 2024-08-06 07:58:28,047:      pdf_renderer.py:  470: printSegment: The trio returned to the Council of Guardians with the technology, but Vesper and the Shadow Syndicate launched a
+   DEBUG: 2024-08-06 07:58:28,109:      pdf_renderer.py:  470: printSegment: surprise attack. The Council was forced to go into hiding, and the trio must rally the Guardians to launch a
+   DEBUG: 2024-08-06 07:58:28,140:      pdf_renderer.py:  470: printSegment: counterattack. As the battle raged on, Lyra discovered her true connection to the Multiverse and her destiny as a
+   DEBUG: 2024-08-06 07:58:28,158:      pdf_renderer.py:  470: printSegment: hero. With the fate of the Multiverse hanging in the balance, Lyra, Arin, Kael, and their allies fought bravely against
+   DEBUG: 2024-08-06 07:58:28,173:      pdf_renderer.py:  470: printSegment: the Syndicate. The outcome was far from certain, but one thing was clear: the heroes of the Multiverse would not
+   DEBUG: 2024-08-06 07:58:28,174:      pdf_renderer.py:  470: printSegment: back down. The stage was set for a final confrontation that would determine the course of history.
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 0, [1, None, 1, 68.0]
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 1, [2, 'Chapter 1: ', 1, 106.0]
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 2, [2, 'Chapter 2: ', 2, 70.0]
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 3, [2, 'Chapter 3: ', 2, 691.5999999999999]
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 4, [2, 'Chapter 4: ', 3, 662.8]
+   DEBUG: 2024-08-06 07:58:28,175:      pdf_renderer.py:   53: 5, [2, 'Chapter 5: ', 4, 668.8]
