@@ -1,12 +1,12 @@
 import os
 import sys
 import time
+import json
 import datetime
 import argparse
 from virustotal_python import Virustotal
 import openai
 from dotenv import load_dotenv
-import json
 from scan_tracker import ScanTracker
 
 # Load API keys from .env file
@@ -14,40 +14,11 @@ load_dotenv()
 VT_API_KEY = os.getenv("VIRUSTOTAL_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Initialize clients
+# Initialize API clients
 vtotal = Virustotal(API_KEY=VT_API_KEY)
 openai.api_key = OPENAI_API_KEY
 
-# Initialize scan tracker
-scan_tracker = ScanTracker()
-
-def get_test_vt_report():
-    """Generate a test VirusTotal report for testing."""
-    return {
-        "data": {
-            "id": "test-scan-id",
-            "attributes": {
-                "status": "completed",
-                "stats": {
-                    "malicious": 0,
-                    "suspicious": 0,
-                    "undetected": 60
-                },
-                "results": {
-                    "test-av": {
-                        "category": "undetected",
-                        "result": None
-                    }
-                }
-            }
-        }
-    }
-
-def get_test_openai_response():
-    """Generate a test OpenAI response for testing."""
-    return "Test file analysis: No malicious indicators found. Severity: Low. No suspicious behaviors detected."
-
-def upload_and_get_report(file_path, test_mode=False):
+def upload_and_get_report(file_path, scan_tracker, test_mode=False):
     """Uploads a file to VirusTotal and retrieves the analysis report."""
     try:
         # Check if file already scanned
@@ -58,9 +29,18 @@ def upload_and_get_report(file_path, test_mode=False):
         print(f"[UPLOAD] Uploading file: {file_path}")
 
         if test_mode:
-            print("[TEST] Using simulated VirusTotal response")
-            time.sleep(2)  # Simulate API delay
-            return get_test_vt_report()
+            # Simulate API response for testing tracking
+            print("[TEST] Using simulated response")
+            return {
+                "data": {
+                    "attributes": {
+                        "stats": {
+                            "malicious": 0,
+                            "suspicious": 0
+                        }
+                    }
+                }
+            }
 
         with open(file_path, "rb") as file_to_upload:
             files = {"file": (os.path.basename(file_path), file_to_upload)}
@@ -70,14 +50,22 @@ def upload_and_get_report(file_path, test_mode=False):
         scan_id = response.json()["data"]["id"]
         print(f"[SCAN] Waiting for analysis completion for file: {file_path}")
 
-        # Wait for analysis to complete
-        time.sleep(60)
-        report = vtotal.request(f"analyses/{scan_id}").json()
+        # Wait for analysis to complete with timeout
+        max_retries = 3
+        wait_time = 20
 
-        # Mark file as scanned after successful analysis
-        scan_tracker.mark_file_scanned(file_path)
+        for retry in range(max_retries):
+            time.sleep(wait_time)
+            try:
+                report = vtotal.request(f"analyses/{scan_id}").json()
+                return report
+            except Exception as e:
+                print(f"[RETRY] Attempt {retry + 1}/{max_retries} failed: {e}")
+                wait_time *= 2  # Exponential backoff
 
-        return report
+        print("[ERROR] Max retries reached, moving to next file")
+        return None
+
     except Exception as e:
         print(f"[ERROR] Error uploading or analyzing file {file_path}: {e}")
         return None
@@ -88,18 +76,15 @@ def summarize_with_openai(vt_report, test_mode=False):
         print("[AI] Generating OpenAI analysis...")
 
         if test_mode:
-            print("[TEST] Using simulated OpenAI response")
-            time.sleep(1)  # Simulate API delay
-            return get_test_openai_response()
+            return "Test mode: Simulated analysis summary"
 
         prompt = f"""
-You are a cybersecurity expert. Analyze the following VirusTotal report and highlight key considerations such as:
+Analyze this VirusTotal report and highlight key considerations:
 - Malware detections
 - Severity level
 - Suspicious behaviors
 - Known malicious indicators
-Here is the report data:
-{json.dumps(vt_report, indent=2)}
+Report data: {json.dumps(vt_report, indent=2)}
 """
         response = openai.chat.completions.create(
             model="gpt-4",
@@ -117,7 +102,9 @@ def analyze_files_in_directory(directory_path, test_mode=False):
     """Processes files in the specified directory."""
     print(f"\n=== Starting Directory Analysis: {directory_path} ===")
     print(f"[TIME] Analysis started at: {datetime.datetime.now()}")
-    print(f"[MODE] Running in {'test' if test_mode else 'production'} mode")
+
+    # Initialize tracker
+    scan_tracker = ScanTracker()
 
     # Get list of all files
     all_files = []
@@ -145,13 +132,9 @@ def analyze_files_in_directory(directory_path, test_mode=False):
             print(f"[ERROR] Error checking file size: {e}")
             continue
 
-        # Create log file for this analysis
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = f"./file_analysis_{timestamp}.log"
-
         try:
             # Step 1: Upload and get VirusTotal report
-            vt_report = upload_and_get_report(file_path, test_mode)
+            vt_report = upload_and_get_report(file_path, scan_tracker, test_mode)
             if not vt_report:
                 continue
 
@@ -160,7 +143,12 @@ def analyze_files_in_directory(directory_path, test_mode=False):
             if not summary:
                 continue
 
-            # Step 3: Append results to log file
+            # Step 3: Mark file as scanned and save results
+            scan_tracker.mark_file_scanned(file_path)
+
+            # Create log entry
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            log_file = f"./file_analysis_{timestamp}.log"
             with open(log_file, "a") as f:
                 f.write(f"File: {file_path}\n")
                 f.write(f"Analysis Time: {datetime.datetime.now()}\n")
@@ -168,17 +156,13 @@ def analyze_files_in_directory(directory_path, test_mode=False):
                 f.write("-" * 80 + "\n")
             print(f"[LOG] Results saved to: {log_file}")
 
-            # Mark file as scanned after successful analysis
-            scan_tracker.mark_file_scanned(file_path)
-
         except Exception as e:
             print(f"[ERROR] Analysis failed for {file_path}: {e}")
 
-        # Pause between files for API rate limits (shorter in test mode)
-        if index < total_files:
-            delay = 2 if test_mode else 15
-            print(f"[WAIT] Waiting {delay} seconds before next file...")
-            time.sleep(delay)
+        # Pause between files for API rate limits
+        if not test_mode and index < total_files:
+            print("[WAIT] Waiting before next file...")
+            time.sleep(15)
 
     # Print final statistics
     stats = scan_tracker.get_scan_stats()
@@ -186,24 +170,19 @@ def analyze_files_in_directory(directory_path, test_mode=False):
     print(f"[TIME] Analysis completed at: {datetime.datetime.now()}")
     print(f"[SUMMARY] Total files scanned: {stats['total_scanned']}")
     print(f"[SUMMARY] Last scan time: {stats['last_scan']}")
+    print(f"[SUMMARY] Last file processed: {stats['last_file']}")
 
 def parse_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="File Analysis Tool")
     parser.add_argument("--directory", required=True, help="Directory to scan")
-    parser.add_argument("--test", action="store_true", help="Run in test mode with simulated API responses")
+    parser.add_argument("--test", action="store_true", help="Run in test mode (no API calls)")
     return parser.parse_args()
 
 if __name__ == "__main__":
     try:
         args = parse_args()
-
-        if not os.path.exists(args.directory):
-            print(f"[ERROR] Directory not found: {args.directory}")
-            sys.exit(1)
-
-        analyze_files_in_directory(args.directory, test_mode=args.test)
-
+        analyze_files_in_directory(args.directory, args.test)
     except Exception as e:
         print(f"[ERROR] Script encountered an error: {e}")
         sys.exit(1)
