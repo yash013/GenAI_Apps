@@ -1,0 +1,12 @@
+{
+    "scanned_files": [
+        "test_files/system32/file2.txt",
+        "test_files/system32/suspicious.py",
+        "test_files/system32/suspicious_script.ps1",
+        "test_files/system32/file1.txt",
+        "test_files/system32/file3.txt",
+        "test_files/system32/new_file.txt"
+    ],
+    "last_scan": "2024-12-18T20:20:53.727052",
+    "total_scanned": 6
+}
