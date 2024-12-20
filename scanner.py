@@ -179,7 +179,7 @@ def check_report_status(scan_id, max_retries=5, initial_delay=60):
     return None
 
 def upload_and_get_report(file_path):
-    """Uploads a file to VirusTotal and retrieves the analysis report."""
+    """Uploads a file to VirusTotal and retrieves the analysis report with parent relationships."""
     try:
         print(f"[SCAN] Uploading file: {file_path}")
 
@@ -189,6 +189,7 @@ def upload_and_get_report(file_path):
             print(f"[LIMIT] Daily request limit ({DAILY_LIMIT}) reached. Saving state...")
             return None
 
+        # Upload file
         with open(file_path, "rb") as file_to_upload:
             response = vtotal.request("files", files={"file": file_to_upload}, method="POST")
 
@@ -200,34 +201,180 @@ def upload_and_get_report(file_path):
         scan_id = response.json()["data"]["id"]
         print(f"[SCAN] Waiting for analysis completion for file: {file_path}")
 
-        # Use check_report_status to wait for completion with retries
-        report = check_report_status(scan_id, max_retries=5, initial_delay=60)
-        if not report:
+        # Wait for analysis to complete with retries
+        analysis = check_report_status(scan_id, max_retries=5, initial_delay=60)
+        if not analysis:
             print("[ERROR] Analysis timed out or failed")
             return None
 
-        print("[SUCCESS] Analysis completed successfully")
-        return report
+        # Add short delay before fetching relationship data
+        print("[WAIT] Waiting 15 seconds for relationship data to be processed...")
+        time.sleep(15)
+
+        # Get full report with relationships after analysis is complete
+        max_retries = 2  # Reduced retries for relationship data
+        for attempt in range(max_retries):
+            try:
+                report = vtotal.request(f"files/{scan_id}?relationships=execution_parents,pe_resource_parents").json()
+
+                # Verify relationships data structure
+                if 'data' not in report or 'relationships' not in report['data']:
+                    print("[INFO] No relationship data found in report")
+                    report['data']['relationships'] = {
+                        'execution_parents': {'data': []},
+                        'pe_resource_parents': {'data': []}
+                    }
+
+                # Combine report and analysis data
+                report['analysis'] = analysis
+                print("[SUCCESS] Analysis completed successfully")
+                return report
+
+            except Exception as e:
+                if "404" in str(e):
+                    print("[INFO] No relationship data available (404)")
+                    # Return report with empty relationships if 404
+                    return {'data': {'id': scan_id, 'relationships': {
+                        'execution_parents': {'data': []},
+                        'pe_resource_parents': {'data': []}
+                    }}, 'analysis': analysis}
+                elif attempt < max_retries - 1:
+                    wait_time = 15  # Reduced wait time between retries
+                    print(f"[RETRY] Failed to fetch relationship data (attempt {attempt + 1}/{max_retries}): {e}")
+                    print(f"[WAIT] Waiting {wait_time} seconds before retry...")
+                    time.sleep(wait_time)
+                else:
+                    print(f"[ERROR] Failed to fetch relationship data after {max_retries} attempts: {e}")
+                    # Return basic report without relationships if relationship fetch fails
+                    return {'data': {'id': scan_id, 'relationships': {
+                        'execution_parents': {'data': []},
+                        'pe_resource_parents': {'data': []}
+                    }}, 'analysis': analysis}
+
     except Exception as e:
         print(f"[ERROR] Error uploading or analyzing file {file_path}: {e}")
         return None
+
+def analyze_parent_relationships(report_data):
+    """Analyzes parent relationships for malicious indicators.
+
+    Args:
+        report_data (dict): The complete VirusTotal report data
+
+    Returns:
+        dict: Analysis of execution_parents and pe_resource_parents with their malicious indicators
+    """
+    parent_analysis = {
+        'execution_parents': [],
+        'pe_resource_parents': []
+    }
+
+    for relationship in ['execution_parents', 'pe_resource_parents']:
+        if relationship in report_data.get('data', {}).get('relationships', {}):
+            parents = report_data['data']['relationships'][relationship].get('data', [])
+            for parent in parents:
+                attributes = parent.get('attributes', {})
+                stats = attributes.get('last_analysis_stats', {})
+                verdicts = attributes.get('sandbox_verdicts', {})
+
+                # Calculate detection ratio
+                total_detections = sum(stats.values()) if stats else 0
+                malicious_count = stats.get('malicious', 0)
+                suspicious_count = stats.get('suspicious', 0)
+                detection_ratio = (malicious_count + suspicious_count) / total_detections if total_detections > 0 else 0
+
+                # Analyze sandbox verdicts
+                malicious_verdicts = []
+                for sandbox_name, verdict in verdicts.items():
+                    if verdict.get('category') in ['malicious', 'suspicious']:
+                        malicious_verdicts.append({
+                            'sandbox': sandbox_name,
+                            'category': verdict.get('category'),
+                            'confidence': verdict.get('confidence'),
+                            'classification': verdict.get('malware_classification', []),
+                            'names': verdict.get('malware_names', [])
+                        })
+
+                parent_analysis[relationship].append({
+                    'sha256': parent.get('id'),
+                    'type': parent.get('type'),
+                    'detections': {
+                        'total': total_detections,
+                        'malicious': malicious_count,
+                        'suspicious': suspicious_count,
+                        'ratio': detection_ratio
+                    },
+                    'sandbox_verdicts': malicious_verdicts,
+                    'names': attributes.get('names', []),
+                    'type_tags': attributes.get('type_tags', []),
+                    'threat_label': attributes.get('popular_threat_classification', {}).get('suggested_threat_label')
+                })
+
+    return parent_analysis
 
 def summarize_with_openai(vt_report):
     """Summarizes the VirusTotal report with OpenAI API."""
     try:
         print("[AI] Generating OpenAI analysis...")
+
+        # Extract parent relationship data
+        relationships = vt_report.get('data', {}).get('relationships', {})
+        exec_parents = relationships.get('execution_parents', {}).get('data', [])
+        pe_parents = relationships.get('pe_resource_parents', {}).get('data', [])
+
+        # Format parent relationship details
+        parent_analysis = "\n2) Parent Relationship Analysis:\n"
+
+        # Execution Parents
+        parent_analysis += f"\n- Execution Parents: {len(exec_parents)} found"
+        malicious_exec = sum(1 for p in exec_parents if p.get('attributes', {}).get('last_analysis_stats', {}).get('malicious', 0) > 0)
+        parent_analysis += f", {malicious_exec} malicious\n"
+
+        for idx, parent in enumerate(exec_parents, 1):
+            attrs = parent.get('attributes', {})
+            stats = attrs.get('last_analysis_stats', {})
+            detections = f"{stats.get('malicious', 0)}/{sum(stats.values())}"
+            verdict = "Malicious" if stats.get('malicious', 0) > 0 else "Clean"
+            confidence = (stats.get('malicious', 0) / sum(stats.values())) * 100 if sum(stats.values()) > 0 else 0
+
+            parent_analysis += f"  * Parent {idx}: [{parent.get('id', 'Unknown SHA256')}]\n"
+            parent_analysis += f"    - Detections: {detections} engines ({verdict})\n"
+            parent_analysis += f"    - Sandbox Verdict: {verdict} ({confidence:.0f}% confidence)\n"
+            if verdict == "Malicious":
+                parent_analysis += f"    - Malware Family: {attrs.get('popular_threat_classification', {}).get('suggested_threat_label', 'Unknown')}\n"
+
+        # PE Resource Parents
+        parent_analysis += f"\n- PE Resource Parents: {len(pe_parents)} found"
+        malicious_pe = sum(1 for p in pe_parents if p.get('attributes', {}).get('last_analysis_stats', {}).get('malicious', 0) > 0)
+        parent_analysis += f", {malicious_pe} malicious\n"
+
+        for idx, parent in enumerate(pe_parents, 1):
+            attrs = parent.get('attributes', {})
+            stats = attrs.get('last_analysis_stats', {})
+            detections = f"{stats.get('malicious', 0)}/{sum(stats.values())}"
+            verdict = "Malicious" if stats.get('malicious', 0) > 0 else "Clean"
+            confidence = (stats.get('malicious', 0) / sum(stats.values())) * 100 if sum(stats.values()) > 0 else 0
+
+            parent_analysis += f"  * Parent {idx}: [{parent.get('id', 'Unknown SHA256')}]\n"
+            parent_analysis += f"    - Detections: {detections} engines ({verdict})\n"
+            parent_analysis += f"    - Sandbox Verdict: {verdict} ({confidence:.0f}% confidence)\n"
+            if verdict == "Malicious":
+                parent_analysis += f"    - Malware Classification: {attrs.get('popular_threat_classification', {}).get('suggested_threat_label', 'Unknown')}\n"
+
         prompt = f"""
-You are a cybersecurity expert. Analyze the following VirusTotal report and highlight key considerations such as:
-- Malware detections (including total detections and detection names)
-- Severity level (Low/Medium/High based on detection ratio)
-- Suspicious behaviors or characteristics
+You are a cybersecurity expert. Analyze the following VirusTotal report and provide a detailed analysis in two sections:
+
+1) Basic Analysis:
+- Malware detections
+- Severity level
+- Suspicious behaviors
 - Known malicious indicators
-- Recommendation (Clean/Suspicious/Malicious)
 
-Report Analysis:
+2) Parent Relationship Analysis:
+{parent_analysis}
+
+Here is the report data:
 {json.dumps(vt_report, indent=2)}
-
-Please provide a detailed analysis focusing on security implications.
 """
         response = openai.chat.completions.create(
             model="gpt-4",
@@ -253,34 +400,9 @@ def analyze_single_file(file_path):
     print(f"[LOG] Writing results to: {log_file}")
 
     try:
-        # Check if file was already completed
-        try:
-            with open("completed_file.txt", "r") as f:
-                completed_file = f.read().strip()
-                if completed_file and os.path.normpath(file_path) == os.path.normpath(completed_file):
-                    print(f"[SKIP] File already processed: {file_path}")
-                    return
-        except FileNotFoundError:
-            pass
-
-        # Create/update current file tracker
-        with open("current_file.txt", "w") as f:
-            f.write(file_path)
-
-        # Get checkpoint information
-        last_file, processed_count = get_checkpoint()
-        print(f"[CHECKPOINT] Previous scan state:")
-        print(f"[CHECKPOINT] Last completed file: {last_file}")
-        print(f"[CHECKPOINT] Files processed: {processed_count}")
-
         # Check file size
         if os.path.getsize(file_path) > 32 * 1024 * 1024:
             print(f"[SKIP] File too large (>32MB): {file_path}")
-            return
-
-        # Check daily request limit
-        if get_request_count() >= DAILY_LIMIT:
-            print(f"[LIMIT] Daily request limit ({DAILY_LIMIT}) reached")
             return
 
         # Upload and get VirusTotal report
@@ -302,14 +424,6 @@ def analyze_single_file(file_path):
             f.write(f"OpenAI Summary:\n{summary}\n")
             f.write("-" * 80 + "\n")
 
-        # Mark file as completed
-        with open("completed_file.txt", "w") as f:
-            f.write(os.path.normpath(file_path))
-
-        # Update checkpoint
-        processed_count += 1
-        save_checkpoint(file_path, processed_count)
-
         print("\n=== Single File Analysis Complete ===")
         print(f"[TIME] Analysis completed at: {datetime.datetime.now()}")
         print(f"[SUMMARY] Results saved to: {log_file}")
@@ -317,10 +431,6 @@ def analyze_single_file(file_path):
 
     except Exception as e:
         print(f"[ERROR] Analysis failed: {e}")
-    finally:
-        # Clear current file tracker
-        with open("current_file.txt", "w") as f:
-            f.write("")
 
 if __name__ == "__main__":
     try:
